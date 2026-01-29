@@ -1,0 +1,28 @@
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+
+int main(int argc,char* argv[]){
+	char* argvs[argc];
+	for(int i=1;i<argc;i++){
+		argvs[i-1] = argv[i];
+	}
+	if(fork()==0){
+		char input[512];
+		char *ch;
+		ch = input;
+		while((*ch)=getch()){
+			if(*ch=='\n'){
+				*ch=0;
+				break;
+			}
+		}
+		argvs[argc-1]=input;
+		exec(argv[0],argvs);
+	}
+	else{
+		wait();
+	}
+	exit(0);
+}
+
