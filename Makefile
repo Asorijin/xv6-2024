@@ -199,6 +199,10 @@ UPROGS=\
 	$U/_primes\
 	$U/_find\
 	$U/_xargs\
+	$U/_trace\
+	$U/_attack\
+	$U/_attacktest\
+	$U/_secret\
 
 ifeq ($(LAB),syscall)
 UPROGS += \
