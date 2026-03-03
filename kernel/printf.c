@@ -17,6 +17,18 @@
 
 volatile int panicked = 0;
 
+void
+backtrace()
+{
+  uint64 ret_addr;
+  printf("%s\n","backtrace:");
+  ret_addr = r_fp();
+  while(PGROUNDDOWN(ret_addr) != ret_addr){
+    printf("0x00000000%lx\n",*((uint64 *)(ret_addr-8)));
+    ret_addr = (uint64)*((uint64 *)(ret_addr-16));
+  }
+}
+
 // lock to avoid interleaving concurrent printf's.
 static struct {
   struct spinlock lock;

@@ -145,7 +145,11 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
-
+  p->passed_tick = 0;
+  p->handleptr = 0;
+  p->alarm_inter = 0;
+  p->sig_trap = 0;
+  memset(&p->sig_trapframe,0,sizeof(p->sig_trapframe));
   return p;
 }
 
@@ -160,6 +164,7 @@ freeproc(struct proc *p)
   p->trapframe = 0;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
+  memset(&p->sig_trapframe,0,sizeof(p->sig_trapframe));
   p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
