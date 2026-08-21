@@ -1,0 +1,11 @@
+1. Arguments are passed in registers a0-a7. In main's call to printf, a0 holds the format string, a1 holds 12 (the result of f(8)+1), and a2 holds 13.
+
+2. The call to f in main loads 8 into a0 and then jalr to f; the call to g inside f loads x into a0 and then jalr to g. With optimization the compiler may inline these calls, in which case g's body (x+3) is folded directly into f and f into main.
+
+3. The address of printf is 0x630 in user/call.asm (it varies with the build, but it is the entry point of the printf symbol shown at the top of the disassembly).
+
+4. ra holds the return address: the address of the instruction in main immediately following the jalr to printf.
+
+5. The program prints "HE110 World". 57616 in hex is 0xe110, so %x prints "e110"; the string argument &i points to the little-endian bytes 72 6c 64 00, which spell "rld", completing "World". On a big-endian RISC-V the value would instead be 0x726c6400.
+
+6. It prints "x=3 y=<garbage>": printf reads its second integer argument from a2, but no value was supplied for it, so whatever happened to be left in a2 is printed.
