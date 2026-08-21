@@ -48,7 +48,7 @@ void
 procinit(void)
 {
   struct proc *p;
-  
+
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
   for(p = proc; p < &proc[NPROC]; p++) {
@@ -308,6 +308,12 @@ fork(void)
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
 
+  for(i = 0; i < NVMA; i++)
+    if(p->vmas[i].used){
+      np->vmas[i] = p->vmas[i];
+      filedup(np->vmas[i].f);
+    }
+
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   pid = np->pid;
@@ -360,6 +366,13 @@ exit(int status)
     }
   }
 
+  // Release memory-mapped files.
+  for(int i = 0; i < NVMA; i++)
+    if(p->vmas[i].used){
+      fileclose(p->vmas[i].f);
+      p->vmas[i].used = 0;
+    }
+
   begin_op();
   iput(p->cwd);
   end_op();
@@ -372,7 +385,7 @@ exit(int status)
 
   // Parent might be sleeping in wait().
   wakeup(p->parent);
-  
+
   acquire(&p->lock);
 
   p->xstate = status;
