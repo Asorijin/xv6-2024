@@ -1,0 +1,9 @@
+1. xv6 uses Sv39 paging: a 64-bit virtual address is split into a 39-bit virtual page number (three 9-bit level-2/level-1/level-0 indexes) and a 12-bit offset. Each level of the page table is a 4096-byte page of 512 PTEs.
+
+2. A superpage maps 2MB (512 aligned pages) with a single level-1 PTE that has PTE_R/PTE_W/PTE_X set (a leaf), instead of 512 separate level-0 PTEs. This reduces page-table size and TLB pressure for large contiguous regions. A PTE is a leaf when any of PTE_R/PTE_W/PTE_X is set (PTE_LEAF).
+
+3. pgpte() walks the page table and returns the leaf PTE for an address, so for an address inside a superpage it returns the shared level-1 PTE. supercheck relies on this: every 4KB address in the 2MB range resolves to the same PTE.
+
+4. ugetpid() reads p->pid from a USYSCALL page mapped read-only (PTE_R|PTE_U) just below TRAPFRAME. It is shared with the kernel (the kernel writes the pid in allocproc), which avoids a system call and the kernel copying data to user space on every getpid.
+
+5. sbrk for large requests allocates 2MB superpages from a separate superpage freelist (the top NSUPER 2MB blocks of physical memory are reserved at kinit). The 2MB-aligned part of the new region is mapped with level-1 leaf PTEs; the remainder uses ordinary 4KB pages. uvmcopy/uvmunmap/uvmfree are superpage-aware so fork and exit handle mixed mappings correctly.
